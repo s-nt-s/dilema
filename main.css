@@ -1,0 +1,23 @@
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 12px;
+}
+#dil > div.ficha {
+    display: none;
+    float: left;
+}
+div.ficha > div {
+  margin: 5px;
+  display: inline-block;
+  border: 2px solid black;
+  padding: 10px;
+  border-radius: 5px;
+  width: 300px;
+  height: 200px;
+  overflow-y: auto;
+  cursor: pointer;
+}
+
+#dil legend {
+  font-size: 2em;
+}
