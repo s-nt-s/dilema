@@ -2,18 +2,13 @@ var fichas=[];
 var configuracion;
 var fin=false;
 
-function get_json(js) {
-    var json = null;
-    $.ajax({
-        'async': false,
-        'global': false,
-        'url': js,
-        'dataType': "json",
-        'success': function (data) {
-            json = data;
-        }
-    });
-    return json;
+function get_csv() {
+    var fileInput = document.getElementById("csv");
+    var reader = new FileReader();
+    reader.onload = function () {
+        $("#csv_content").val(reader.result);
+    };
+    reader.readAsBinaryString(fileInput.files[0]);
 }
 
 function get_word(s) {
@@ -22,8 +17,8 @@ function get_word(s) {
     return word;
 }
 
-function get_nombre() {
-    var nombre = get_word(window.location.search) || get_word(window.location.hash);
+function get_nombre(a) {
+    var nombre = a || get_word(window.location.search) || get_word(window.location.hash);
     if (!nombre) {
         return null;
     }
@@ -41,6 +36,7 @@ function save() {
     });
     data = JSON.stringify(data);
     var nombre = $("#nombre").val();
+    var nuevo = !("data_"+nombre in localStorage)
     localStorage.setItem("data_"+nombre, data);
 
     var nombres = localStorage.getItem('nombres');
@@ -51,34 +47,66 @@ function save() {
         }
     }
     localStorage.setItem("nombres", nombres);
-    
+    return nuevo;
 }
 
-function run() {
-    var nombre = get_nombre();
+function run(ev) {
+    var a = null;
+    if (ev && ev.currentTarget && ev.currentTarget.href && ev.currentTarget.href.indexOf("#")) {
+        a=ev.currentTarget.href.split("#")[1];
+    }
+    var nombre = get_nombre(a);
     if (!nombre) {
         $("#conf").show();
+        $("#ver").hide();
         $("#dil").hide();
         return false;
     }
     var data = localStorage.getItem('data_'+nombre);
     configuracion = JSON.parse(data);
     for (k in configuracion) {
-        $("#"+k).val(data[k]);
+        if (k!="csv")
+        $("#"+k).val(configuracion[k]).change();
     }
     $("#nombre").val(nombre);
-    if (configuracion["datos"]!=1) {
-        alert("No implementado aún");
-        return false;
+    var obj_fichas=null;
+    if (configuracion["datos"]==1) {
+        obj_fichas=movies_superhero;
+    }
+    else
+    {
+        var csv = localStorage.getItem("csv_"+configuracion["datos"]);
+        if (!csv) {
+            alert("Error inesperado. Vuelva a cargar el CSV.");
+            return;
+        }
+        obj_fichas = $.csv.toObjects(csv ,{"separator":";"});
+        if (!csv) {
+            alert("Error inesperado. ¿Puede que el CSV este mal formateado? (el separador ha de ser ;).");
+            return;
+        }
     }
     $("#conf").hide();
+    $("#ver").show();
+    $("#dil").find(">div").remove();
     $("#dil").show();
     $("#dil legend").text(configuracion["pregunta"]);
-    $("#count").text(movies_superhero.length - 1);
-    var i, m;
-    for (i=0; i<movies_superhero.length; i++) {
-        m = movies_superhero[i];
-        $("#dil").append("<div class='ficha'><div><h1>"+m["title"]+"</h1><p>Año: "+m["year"]+"</p><p>Reparto: "+m["cast"].join(", ")+"</p></div></div>");
+    $("#count").text(obj_fichas.length - 1);
+    var i, m, flag, div;
+    for (i=0; i<obj_fichas.length; i++) {
+        div = $("#dil").append("<div class='ficha'><div></div></div>").find("div.ficha:last div");
+        m = obj_fichas[i];
+        flag=true;
+        for (k in m) {
+            if (k) {
+                if (flag) {
+                    div.append("<h1>"+m[k]+"</h1>");
+                    flag=false;
+                } else {
+                    div.append("<p>"+k+": "+m[k]+"</p>");
+                }
+            }
+        }
     }
     $("#dil .ficha:hidden").not(".eliminada").slice(0, configuracion["num"]).show();
     $("#dil .ficha > div").click(function() {
@@ -103,26 +131,43 @@ $(document).ready(function() {
     var i, g;
     for (i=0; i<nombres.length; i++) {
         g=nombres[i];
-        $("#menu").append(", <a class='guardado' href='?"+g+"'>"+g+"</a>");
+        $("#menu").append(", <a class='guardado' href='#"+g+"'>"+g+"</a>").find("a:last").click(run);
+    }
+    for (k in localStorage) {
+        if (k.startsWith("csv_")) {
+            var name = k.substr(4);
+            $("#datos").append("<option value='"+name+"'>"+name+"</option>")
+        }
     }
     run();
     $("#datos").change(function() {
-        if (this.value==0) {
-            $("#csv").attr("required", "required").show();
+        if (!this.value) {
+            $("#csv").show();//.attr("required", "required").show();
         } else {
-            $("#csv").removeAttr("required").hide();
+            $("#csv").hide();//.removeAttr("required");
         }
     }).change();
     $("form").submit(function() {
-        js = $("#datos").val();
-        if (js == 0) {
-            alert("No implementado aún");
-            return false;
-        }
-        //var json = get_json(js);
-        window.location.hash=$("#nombre").val();
-        save();
+        var nombre=$("#nombre").val();
+        window.location.hash=nombre;
+        var nuevo = save();
         run();
+        if(nuevo) $("#menu").append(", <a class='guardado' href='#"+nombre+"'>"+nombre+"</a>").find("a:last").click(run);
         return false;
     })
+    $("#ver").click(function() {
+        $("#conf").show();
+    });
+    $("#csv").change(function() {
+        var reader = new FileReader();
+        reader.onload = function () {
+            var name= $("#csv")[0].files[0].name;
+            localStorage.setItem("csv_"+name, reader.result);
+            $("#datos").append("<option value='"+name+"'>"+name+"</option>").val(name).change();
+        };
+        reader.onerror = function () {
+            alert("Error, vuélvalo a intentar si eso");
+        }
+        reader.readAsText(this.files[0]);
+    });
 });

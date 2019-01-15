@@ -5,21 +5,23 @@
     <meta charset="UTF-8">
     <link rel="stylesheet" type="text/css" href="main.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="http://evanplaice.github.io/jquery-csv/src/jquery.csv.js"></script>
     <script src="movies_superhero.json"></script>
     <script src="main.js"></script>
  </head>
- <p id="menu"><a href="index.html">inicio</a></p>
+ <p id="menu"><button type="button" id="ver">Ver configuración</button></p>
  <body>
     <form action="#" method="POST">
   <fieldset id="conf">
     <legend>Configuración</legend>
     <p>
-        <label for="datos">Juego de datos</label> <select id="datos" name="datos">
+        <label for="datos">Juego de datos</label> <select id="datos" name="datos" required>
+            <option value="">Añadir datos desde CSV</option>
             <!--option value="movies_2018.json">Películas de 2018 (236 fichas)</option-->
             <option value="1">Películas de superheroes (83 fichas)</option>
-            <option value="0">CSV</option>
         </select>
-        <input required type="file" id="csv" name="csv" accept=".csv">
+        <input type="file" id="csv" name="csv" accept=".csv" value="Añadir desde csv">
+        <textarea id="csv_content" name="csv_content"></textarea>
     </p>
     <p>
     <label for="metodo">Método de selección</label> <select id="metodo" name="metodo">
@@ -28,10 +30,12 @@
     </select>
     </p>
     <p>
-        <label for="pregunta">Pregunta</label> <input required id="pregunta" name="pregunta" list="preguntas" value="¿Con cual te quedas?">
+        <label for="pregunta">Pregunta</label> <input required id="pregunta" name="pregunta" list="preguntas" value="">
         <datalist id="preguntas">
           <option value="¿Con cual te quedas?">
           <option value="¿Cual descartas?">
+          <option value="¿Cual es la peor?">
+          <option value="¿Cual es la mejor?">
         </datalist>
     </p>
     <p>

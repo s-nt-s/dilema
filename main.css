@@ -2,6 +2,9 @@ body {
   font-family: Arial, Helvetica, sans-serif;
   font-size: 12px;
 }
+#csv_content {
+    display: none;
+}
 #dil > div.ficha {
     display: none;
     float: left;
@@ -20,4 +23,7 @@ div.ficha > div {
 
 #dil legend {
   font-size: 2em;
+}
+label::after {
+    content: ":";
 }
