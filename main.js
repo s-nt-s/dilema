@@ -87,6 +87,7 @@ function run(ev) {
     configuracion = JSON.parse(data);
     for (k in configuracion) {
         var i=$("#"+k);
+        if i.is(":file") continue;
         if (i.is(":checkbox")) {
             i.prop('checked', configuracion[k]);
         }
