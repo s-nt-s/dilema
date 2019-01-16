@@ -2,15 +2,6 @@ var fichas=[];
 var configuracion;
 var fin=false;
 
-function get_csv() {
-    var fileInput = document.getElementById("csv");
-    var reader = new FileReader();
-    reader.onload = function () {
-        $("#csv_content").val(reader.result);
-    };
-    reader.readAsBinaryString(fileInput.files[0]);
-}
-
 function get_word(s) {
     if (!s || s.length<2) return null;
     word = s.substr(1);
@@ -80,11 +71,7 @@ function run(ev) {
             alert("Error inesperado. Vuelva a cargar el CSV.");
             return;
         }
-        obj_fichas = $.csv.toObjects(csv ,{"separator":";"});
-        if (!csv) {
-            alert("Error inesperado. ¿Puede que el CSV este mal formateado? (el separador ha de ser ;).");
-            return;
-        }
+        obj_fichas = JSON.parse(csv);
     }
     $("#conf").hide();
     $("#ver").show();
@@ -135,8 +122,10 @@ $(document).ready(function() {
     }
     for (k in localStorage) {
         if (k.startsWith("csv_")) {
+            var csv = localStorage.getItem(k);
+            var length = JSON.parse(csv).length - 1;
             var name = k.substr(4);
-            $("#datos").append("<option value='"+name+"'>"+name+"</option>")
+            $("#datos").append("<option value='"+name+"'>"+name+" ("+length+" fichas)</option>");
         }
     }
     run();
@@ -158,16 +147,12 @@ $(document).ready(function() {
     $("#ver").click(function() {
         $("#conf").show();
     });
-    $("#csv").change(function() {
-        var reader = new FileReader();
-        reader.onload = function () {
-            var name= $("#csv")[0].files[0].name;
-            localStorage.setItem("csv_"+name, reader.result);
-            $("#datos").append("<option value='"+name+"'>"+name+"</option>").val(name).change();
-        };
-        reader.onerror = function () {
-            alert("Error, vuélvalo a intentar si eso");
-        }
-        reader.readAsText(this.files[0]);
-    });
+    $("#csv").bind("content", function(event, csv_content) {
+        var name= this.files[0].name;
+        var length = csv_content.length - 1;
+        localStorage.setItem("csv_"+name, JSON.stringify(csv_content));
+        var datos = $("#datos");
+        datos.find("option[value='"+name+"']").remove();
+        datos.append("<option value='"+name+"'>"+name+" ("+length+" fichas)</option>").val(name).change();
+    }).change(handleFileSelect);
 });
