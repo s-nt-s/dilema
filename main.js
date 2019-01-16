@@ -9,6 +9,26 @@ var fichas=[];
 var configuracion;
 var fin=false;
 
+function shuffle(old_array) {
+  var array = old_array.slice();
+  var currentIndex = array.length, temporaryValue, randomIndex;
+
+  // While there remain elements to shuffle...
+  while (0 !== currentIndex) {
+
+    // Pick a remaining element...
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex -= 1;
+
+    // And swap it with the current element.
+    temporaryValue = array[currentIndex];
+    array[currentIndex] = array[randomIndex];
+    array[randomIndex] = temporaryValue;
+  }
+
+  return array;
+}
+
 function get_word(s) {
     if (!s || s.length<2) return null;
     word = s.substr(1);
@@ -31,6 +51,9 @@ function save() {
     var data={}
     $("form *[name]").each(function() {
         data[this.id]=this.value;
+        if (this.type=="checkbox") {
+            data[this.id]=this.checked;
+        }
     });
     data = JSON.stringify(data);
     var nombre = $("#nombre").val();
@@ -63,8 +86,12 @@ function run(ev) {
     var data = localStorage.getItem('data_'+nombre);
     configuracion = JSON.parse(data);
     for (k in configuracion) {
-        if (k!="csv")
-        $("#"+k).val(configuracion[k]).change();
+        var i=$("#"+k);
+        if (i.is(":checkbox")) {
+            i.prop('checked', configuracion[k]);
+        }
+        else i.val(configuracion[k])
+        i.change();
     }
     $("#nombre").val(nombre);
     var obj_fichas=null;
@@ -80,6 +107,7 @@ function run(ev) {
         }
         obj_fichas = JSON.parse(csv);
     }
+    if (configuracion["shuffle"]) obj_fichas = shuffle(obj_fichas);
     $("#conf").hide();
     $("#ver").show();
     $("#dil").find(">div").remove();

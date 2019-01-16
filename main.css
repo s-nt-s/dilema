@@ -24,6 +24,6 @@ div.ficha > div {
 #dil legend {
   font-size: 2em;
 }
-label::after {
+label:not(.avoid)::after {
     content: ":";
 }
