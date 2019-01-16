@@ -113,6 +113,9 @@ function run(ev) {
 
 
 $(document).ready(function() {
+    $("#borrar").click(function(){
+        localStorage.clear();
+    });
     var nombres = localStorage.getItem('nombres');
     nombres = nombres?nombres.split(" "):[];
     var i, g;
