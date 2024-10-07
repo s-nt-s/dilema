@@ -1,63 +1,13 @@
-<!DOCTYPE HTML>
-<html>
- <head>
-    <title>Dilema: ¿Cual escoger?</title>
+<!DOCTYPE html>
+<html lang="es">
+  <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" type="text/css" href="main.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-    <script src="jquery.csv.js"></script>
-    <script src="movies_superhero.json"></script>
-    <script src="file_to_csv.js"></script>
-    <script src="main.js"></script>
- </head>
- <p id="menu"><button type="button" id="ver">Ver configuración</button></p>
- <body>
-    <form action="#" method="POST">
-  <fieldset id="conf">
-    <legend>Configuración</legend>
-    <p>
-        <button type="button" id="borrar">Borrar Configuraciones (haga esto si la web ha dejado de funcionar correctamente)</button>
-    </p>
-    <p>
-        <label for="datos">Juego de datos</label> <select id="datos" name="datos" required>
-            <option value="">Añadir datos desde CSV</option>
-            <!--option value="movies_2018.json">Películas de 2018 (236 fichas)</option-->
-            <option value="1">Películas de superheroes (83 fichas)</option>
-        </select>
-        <input type="file" id="csv" name="csv" accept=".csv">
-        <textarea id="csv_content" name="csv_content"></textarea>
-    </p>
-    <p>
-    <label for="metodo">Método de selección</label> <select id="metodo" name="metodo">
-        <option value="1">La elegida se queda, el resto se descartan</option>
-        <option value="2">La elegida se descarta, el resto se quedan</option>
-    </select>
-    </p>
-    <p>
-        <label for="pregunta">Pregunta</label> <input required id="pregunta" name="pregunta" list="preguntas" value="">
-        <datalist id="preguntas">
-          <option value="¿Con cual te quedas?">
-          <option value="¿Cual descartas?">
-          <option value="¿Cual es la peor?">
-          <option value="¿Cual es la mejor?">
-        </datalist>
-    </p>
-    <p>
-        <label for="num">Fichas simultaneas</label> <input id="num" name="num" type="number" min="2" value="2"/>
-    </p>
-    <p>
-        <input type="checkbox" name="shuffle" id="shuffle" value="1"/> <label for="shuffle" class="avoid">Mostrar fichas en orden aleatorio</label>
-    </p>
-    <p>
-        <label for="nombre">Guardar dilema como</label> <input required id="nombre" type="text" pattern="[a-z0-9]+" title="Solo letras minúsculas y números"/> y <button type="submit">probar</button>
-    </p>
-  </fieldset>
-  </form>
-  <fieldset id="dil">
-    <legend></legend>
-
-    <p>Quedan <span id="count"></span> por descartar</p>
-  </fieldset>
-  
- </body>
+    <link rel="icon" href="/favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dilema: ¿Cual escoger?</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
 </html>
