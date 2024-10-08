@@ -6,7 +6,6 @@ body {
     display: none;
 }
 #dil > div.ficha {
-    display: none;
     float: left;
 }
 div.ficha > div {
@@ -26,4 +25,11 @@ div.ficha > div {
 }
 label:not(.avoid)::after {
     content: ":";
+}
+
+.hide, .eliminada {
+  display: none;
+}
+#menu span:before {
+  content: " ,";
 }
