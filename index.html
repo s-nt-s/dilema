@@ -6,9 +6,7 @@
     <meta charset="UTF-8">
     <link rel="stylesheet" type="text/css" href="main.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-    <script src="jquery.csv.js"></script>
-    <script src="movies_superhero.json"></script>
+    <script src="movies_superhero.js"></script>
     <script src="file_to_csv.js"></script>
     <script src="main.js"></script>
  </head>
@@ -22,11 +20,10 @@
     </p>
     <p>
         <label for="datos">Juego de datos</label> <select id="datos" name="datos" required>
-            <option value="">Añadir datos desde CSV</option>
-            <!--option value="movies_2018.json">Películas de 2018 (236 fichas)</option-->
+            <option value="">Añadir datos desde CSV/XLS/ODS</option>
             <option value="1">Películas de superheroes (83 fichas)</option>
         </select>
-        <input type="file" id="csv" name="csv" accept=".csv">
+        <input type="file" id="csv" name="csv" accept=".csv, .xlsx, .xls, .ods">
         <textarea id="csv_content" name="csv_content"></textarea>
     </p>
     <p>

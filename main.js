@@ -64,17 +64,17 @@ class Page {
       .querySelectorAll("a")
       .forEach((a) => a.addEventListener("click", run));
   }
-  updateDatos() {
+  updateDatos(selected) {
     this.datos
-      .querySelectorAll("option[name^='csv_]")
+      .querySelectorAll("option[data-csv]")
       .forEach((a) => a.remove());
     Object.entries(localStorage).forEach(([k, v]) => {
       if (!k.startsWith("csv_")) return;
-      const length = JSON.parse(csv).length - 1;
+      const length = JSON.parse(v).length - 1;
       const name = k.substring(4);
       this.datos.insertAdjacentHTML(
         "beforeend",
-        `<option value='${name}'>${name} (${length} fichas)</option>`
+        `<option data-csv value='${name}'${selected==k?" selected":""}>${name} (${length} fichas)</option>`
       );
     });
 
@@ -82,7 +82,6 @@ class Page {
   }
 }
 let PAGE = null;
-var configuracion;
 
 function shuffle(old_array) {
   const array = old_array.slice();
@@ -126,7 +125,7 @@ function run(ev) {
     return false;
   }
   const data = localStorage.getItem("data_" + nombre);
-  configuracion = JSON.parse(data);
+  const configuracion = JSON.parse(data);
   for (k in configuracion) {
     let i = document.getElementById(k);
     if (i == null) continue;
@@ -219,13 +218,15 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   PAGE.ver.addEventListener("click", () => PAGE.conf.classList.remove("hide"));
-
-  PAGE.csv.addEventListener("content", function (e, csv_content) {
-    const name = this.files[0].name;
-    localStorage.setItem("csv_" + name, JSON.stringify(csv_content));
-    PAGE.updateDatos();
-  });
-  PAGE.csv.addEventListener("change", handleFileSelect);
+  new CsvReader(
+    PAGE.csv,
+    (file, data) =>{
+      const name = "csv_" + file.name;
+      localStorage.setItem("csv_" + file.name, JSON.stringify(data));
+      PAGE.updateDatos(name);
+    },
+    2
+  )
   run();
   document.body.classList.remove("hide");
 });
