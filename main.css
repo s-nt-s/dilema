@@ -33,3 +33,6 @@ label:not(.avoid)::after {
 #menu span:before {
   content: " ,";
 }
+div.ficha div img {
+  max-width: 100%;
+}

@@ -161,10 +161,13 @@ function run(ev) {
       "<div class='ficha hide'><div></div></div>"
     );
     const div = PAGE.dil.querySelector("div.ficha:last-of-type div");
+    const img = m['img'];
+    if (img) delete m['img'];
     Object.entries(m).forEach(([k, v], i) => {
-      if (i == 0) div.insertAdjacentHTML("beforeend", "<h1>" + v + "</h1>");
-      else div.insertAdjacentHTML("beforeend", "<p>" + k + ": " + v + "</p>");
+      if (i == 0) return div.insertAdjacentHTML("beforeend", "<h1>" + v + "</h1>");
+      div.insertAdjacentHTML("beforeend", "<p>" + k + ": " + v + "</p>");
     });
+    if (img) div.insertAdjacentHTML("beforeend", `<img src="${img}"/>`);
   });
 
   const fichas = Array.from(PAGE.dil.querySelectorAll(".ficha"));
