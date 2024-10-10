@@ -65,16 +65,16 @@ class Page {
       .forEach((a) => a.addEventListener("click", run));
   }
   updateDatos(selected) {
-    this.datos
-      .querySelectorAll("option[data-csv]")
-      .forEach((a) => a.remove());
+    this.datos.querySelectorAll("option[data-csv]").forEach((a) => a.remove());
     Object.entries(localStorage).forEach(([k, v]) => {
       if (!k.startsWith("csv_")) return;
       const length = JSON.parse(v).length - 1;
       const name = k.substring(4);
       this.datos.insertAdjacentHTML(
         "beforeend",
-        `<option data-csv value='${name}'${selected==k?" selected":""}>${name} (${length} fichas)</option>`
+        `<option data-csv value='${name}'${
+          selected == k ? " selected" : ""
+        }>${name} (${length} fichas)</option>`
       );
     });
 
@@ -161,10 +161,11 @@ function run(ev) {
       "<div class='ficha hide'><div></div></div>"
     );
     const div = PAGE.dil.querySelector("div.ficha:last-of-type div");
-    const img = m['img'];
-    if (img) delete m['img'];
+    const img = m["img"];
+    if (img) delete m["img"];
     Object.entries(m).forEach(([k, v], i) => {
-      if (i == 0) return div.insertAdjacentHTML("beforeend", "<h1>" + v + "</h1>");
+      if (i == 0)
+        return div.insertAdjacentHTML("beforeend", "<h1>" + v + "</h1>");
       div.insertAdjacentHTML("beforeend", "<p>" + k + ": " + v + "</p>");
     });
     if (img) div.insertAdjacentHTML("beforeend", `<img src="${img}"/>`);
@@ -221,15 +222,13 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   PAGE.ver.addEventListener("click", () => PAGE.conf.classList.remove("hide"));
-  new CsvReader(
-    PAGE.csv,
-    (file, data) =>{
-      const name = "csv_" + file.name;
-      localStorage.setItem("csv_" + file.name, JSON.stringify(data));
-      PAGE.updateDatos(name);
-    },
-    2
-  )
+  PAGE.csv.addEventListener("onread", (ev) => {
+    const file = ev.detail.file;
+    const data = ev.detail.data;
+    const name = "csv_" + file.name;
+    localStorage.setItem("csv_" + file.name, JSON.stringify(data));
+    PAGE.updateDatos(name);
+  });
   run();
   document.body.classList.remove("hide");
 });
