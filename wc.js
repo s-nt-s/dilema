@@ -1,93 +1,131 @@
-class SheetInput extends HTMLElement {
+class HTMLInputFileElement extends HTMLElement {
+  static #selfAttr = {
+    "read-as": Object.getOwnPropertyNames(FileReader.prototype)
+      .flatMap((m) => {
+        if (!m.startsWith("readAs")) return [];
+        if (typeof FileReader.prototype[m] !== "function") return [];
+        return [m.substring(6)];
+      })
+      .sort((a, b) => {
+        if (a == "Text") return -99999999;
+        if (b == "Text") return 99999999;
+        return a.localeCompare(b);
+      }),
+  };
+  static #flEvets = Object.getOwnPropertyNames(FileReader.prototype).flatMap(
+    (prop) => {
+      if (!prop.startsWith("on")) return [];
+      const name = prop.slice(2);
+      if (name.length == 0) return [];
+      return [name];
+    }
+  );
+  static #inputAttr = Object.getOwnPropertyNames(
+    HTMLInputElement.prototype
+  ).flatMap((prop) => {
+    if (prop == "type") return false;
+    const desElem = Object.getOwnPropertyDescriptor(
+      HTMLElement.prototype,
+      prop
+    );
+    if (desElem && (desElem.get || desElem.set)) return [];
+    const desInput = Object.getOwnPropertyDescriptor(
+      HTMLInputElement.prototype,
+      prop
+    );
+    if (!(desInput && (desInput.get || desInput.set))) return [];
+    return [prop.toLocaleLowerCase()];
+  });
+
   constructor() {
     super();
-    this.attachShadow({ mode: "open" });
-    this.minrows = 1;
-
+    const shadow = this.attachShadow({ mode: "closed" });
     this.input = document.createElement("input");
     this.input.type = "file";
-    this.updateInputAttribute();
-
-    this.input.addEventListener("change", (event) => this.handleFile(event));
-
-    this.shadowRoot.appendChild(this.input);
+    this.input.addEventListener("change", (e) => this.#handleFile(e));
+    shadow.appendChild(this.input);
   }
-
-  handleFile(ev) {
-    if (!ev?.target?.files?.length) return false;
-    const file = ev.target.files[0];
-    this.read(file);
+  get readAs() {
+    return this.getAttribute("read-as");
   }
-  read(file) {
+  getAttribute(name) {
+    const val = super.getAttribute.apply(this, arguments);
+    const vls = HTMLInputFileElement.#selfAttr[name.toLocaleLowerCase()];
+    if (!Array.isArray(vls)) return val;
+    if (vls.includes(val)) return val;
+    return vls[0];
+  }
+  setAttribute(name) {
+    super.setAttribute.apply(this, arguments);
+    const lw = name.toLocaleLowerCase();
+    if (HTMLInputFileElement.#inputAttr.includes(lw))
+      this.input.setAttribute(lw, this.getAttribute(lw));
+  }
+  removeAttribute(name) {
+    super.removeAttribute.apply(this, arguments);
+    const lw = name.toLocaleLowerCase();
+    if (HTMLInputFileElement.#inputAttr.includes(lw))
+      this.input.removeAttribute(lw);
+  }
+  #handleFile(e) {
+    const fls = e.target?.files ?? [];
+    Array.from(fls).forEach((f) => this.#read(f));
+  }
+  #read(file) {
+    const method = `readAs${this.readAs}`;
     const reader = new FileReader();
-    reader.onerror = () => {
-      alert("Error, vuélvalo a intentar si eso");
-    };
-    reader.onload = (event) => {
-      const data = this.processResult(event.target.result);
-      if (!Array.isArray(data))
-        return alert("Error leyendo el fichero ¿esta vació?");
-      if (data.length < this.minrows)
-        return alert(`El fichero debe tener al menos ${this.minrows} filas`);
-      this.callback(file, data);
-    };
-    reader.readAsArrayBuffer(file);
-  }
-  processResult(result) {
-    const binary = new Uint8Array(result);
-    const biStr = binary.reduce(
-      (data, byte) => data + String.fromCharCode(byte),
-      ""
-    );
-
-    const wb = XLSX.read(biStr, {
-      type: "binary",
-    });
-
-    if (wb.SheetNames.length == 0) return null;
-    const sh = wb.Sheets[wb.SheetNames[0]];
-    const data = XLSX.utils.sheet_to_json(sh, {
-      header: "A",
-    });
-    if (data == null || data.length < 2) return null;
-    const head = data[0];
-    const rows = data.slice(1).map((o) => {
-      return Object.fromEntries(
-        Object.entries(o).map(([k, v]) => [head[k], v])
-      );
-    });
-    return rows;
-  }
-  callback(file, data) {
-    this.dispatchEvent(
-      new CustomEvent("onread", {
-        detail: {
+    HTMLInputFileElement.#flEvets.forEach((name) => {
+      reader.addEventListener(name, (e) => {
+        this.#dispatch(name, {
+          event: e,
+          input: this,
           file: file,
-          data: data,
-        },
+          error: reader.error,
+          result: e.target?.result,
+          method: method,
+        });
+      });
+    });
+    reader[method](file);
+  }
+  #dispatch(ev, detail) {
+    this.dispatchEvent(
+      new CustomEvent(ev, {
+        detail: detail,
         bubbles: true,
         composed: true,
       })
     );
   }
-  updateInputAttribute() {
-    this.input.accept =
-      this.getAttribute("accept") || ".csv, .xlsx, .xls, .ods";
-  }
 
   static get observedAttributes() {
-    return ["accept", "minrows"];
+    return [
+      ...new Set([
+        ...HTMLInputFileElement.#inputAttr,
+        ...Object.keys(HTMLInputFileElement.#selfAttr),
+      ]),
+    ];
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
     if (oldValue === newValue) return;
-    if (name === "accept") this.updateInputAttribute();
-    if (name === "minrows") {
-      const v = parseInt(newValue);
-      if (newValue == null || isNaN(v) || v < 1) return;
-      this.minrows = v;
+    const lw = name.toLocaleLowerCase();
+    if (HTMLInputFileElement.#inputAttr.includes(lw)) {
+      if (newValue == null) this.input.removeAttribute(lw);
+      else this.input.setAttribute(lw, newValue);
     }
+    this.#validateAttributes();
+  }
+  #validateAttributes() {
+    Object.entries(HTMLInputFileElement.#selfAttr).forEach(([name, vls]) => {
+      if (!Array.isArray(vls)) return;
+      const v = super.getAttribute(name);
+      if (vls.includes(v)) return;
+      const def = vls[0];
+      if (def == null) return this.removeAttribute(name);
+      this.setAttribute(name, def);
+    });
   }
 }
 
-window.customElements.define("sheet-input", SheetInput);
+window.customElements.define("input-file", HTMLInputFileElement);

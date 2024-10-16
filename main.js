@@ -68,12 +68,12 @@ class Page {
     this.datos.querySelectorAll("option[data-csv]").forEach((a) => a.remove());
     Object.entries(localStorage).forEach(([k, v]) => {
       if (!k.startsWith("csv_")) return;
-      const length = JSON.parse(v).length - 1;
+      const length = JSON.parse(v).length;
       const name = k.substring(4);
       this.datos.insertAdjacentHTML(
         "beforeend",
         `<option data-csv value='${name}'${
-          selected == k ? " selected" : ""
+          selected == name ? " selected" : ""
         }>${name} (${length} fichas)</option>`
       );
     });
@@ -222,12 +222,41 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   PAGE.ver.addEventListener("click", () => PAGE.conf.classList.remove("hide"));
-  PAGE.csv.addEventListener("onread", (ev) => {
+  PAGE.csv.addEventListener("load", (ev) => {
     const file = ev.detail.file;
-    const data = ev.detail.data;
-    const name = "csv_" + file.name;
-    localStorage.setItem("csv_" + file.name, JSON.stringify(data));
-    PAGE.updateDatos(name);
+    const result = ev.detail.result;
+    const binary = new Uint8Array(result);
+    const biStr = binary.reduce(
+      (data, byte) => data + String.fromCharCode(byte),
+      ""
+    );
+
+    const wb = XLSX.read(biStr, {
+      type: "binary",
+    });
+
+    if (wb.SheetNames.length == 0) return null;
+    let firstName = null;
+    wb.SheetNames.forEach((sheetName)=>{
+      const sh = wb.Sheets[sheetName];
+      const data = XLSX.utils.sheet_to_json(sh, {
+        header: "A",
+      });
+      if (data == null || data.length < 2) return null;
+      const head = data[0];
+      const rows = data.slice(1).map((o) => {
+        return Object.fromEntries(
+          Object.entries(o).map(([k, v]) => [head[k], v])
+        );
+      });
+      let name = (""+file.name);
+      if (wb.SheetNames.length>1) {
+        name = name+": "+sheetName;
+      }
+      if (firstName == null) firstName = name;
+      localStorage.setItem("csv_" + name, JSON.stringify(rows));
+    })
+    PAGE.updateDatos(firstName);
   });
   run();
   document.body.classList.remove("hide");

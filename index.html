@@ -23,8 +23,7 @@
             <option value="">Añadir datos desde CSV/XLS/ODS</option>
             <option value="1">Películas de superheroes (83 fichas)</option>
         </select>
-        <sheet-input id="csv" minrows="2"/>
-        <textarea id="csv_content" name="csv_content"></textarea>
+        <input-file id="csv" accept=".csv, .xlsx, .xls, .ods" read-as="ArrayBuffer"/>
     </p>
     <p>
     <label for="metodo">Método de selección</label> <select id="metodo" name="metodo">
