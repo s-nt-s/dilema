@@ -48,6 +48,9 @@ class HTMLInputFileElement extends HTMLElement {
   get readAs() {
     return this.getAttribute("read-as");
   }
+  get acceptList() {
+    return (this.getAttribute("accept")??"").trim().split(/[\s,]+/);
+  }
   getAttribute(name) {
     const val = super.getAttribute.apply(this, arguments);
     const vls = HTMLInputFileElement.#selfAttr[name.toLocaleLowerCase()];
@@ -71,8 +74,25 @@ class HTMLInputFileElement extends HTMLElement {
     const fls = e.target?.files ?? [];
     Array.from(fls).forEach((f) => this.#read(f));
   }
+  #isAccepted(file) {
+    const accept = Array.from(this.acceptList);
+    if (accept.length==0) return true;
+    for (let i=0; i<accept.length; i++) if (file.name.endsWith(accept[i])) return true;
+    return false;
+  }
   #read(file) {
     const method = `readAs${this.readAs}`;
+    if (!this.#isAccepted(file)) {
+      this.#dispatch("error", {
+        event: null,
+        input: this,
+        file: file,
+        error: new TypeError(`File ${file.name} not ends in ${this.acceptList.join(', ')}`),
+        result: null,
+        method: method,
+      });
+      return;
+    }
     const reader = new FileReader();
     HTMLInputFileElement.#flEvets.forEach((name) => {
       reader.addEventListener(name, (e) => {

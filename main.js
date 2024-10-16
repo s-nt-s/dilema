@@ -222,6 +222,9 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   PAGE.ver.addEventListener("click", () => PAGE.conf.classList.remove("hide"));
+  PAGE.csv.addEventListener("error", (ev) => {
+    alert((ev?.detail?.error)??"Error inesperado")
+  })
   PAGE.csv.addEventListener("load", (ev) => {
     const file = ev.detail.file;
     const result = ev.detail.result;
@@ -235,7 +238,10 @@ document.addEventListener("DOMContentLoaded", function () {
       type: "binary",
     });
 
-    if (wb.SheetNames.length == 0) return null;
+    if (wb.SheetNames.length == 0) {
+      alert(`${file.name} esta vació`);
+      return null;
+    }
     let firstName = null;
     wb.SheetNames.forEach((sheetName)=>{
       const sh = wb.Sheets[sheetName];
@@ -256,6 +262,10 @@ document.addEventListener("DOMContentLoaded", function () {
       if (firstName == null) firstName = name;
       localStorage.setItem("csv_" + name, JSON.stringify(rows));
     })
+    if (firstName == null) {
+      alert(`${file.name} no tiene suficientes filas`);
+      return null;
+    }
     PAGE.updateDatos(firstName);
   });
   run();
